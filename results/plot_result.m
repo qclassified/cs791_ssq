@@ -1,0 +1,211 @@
+%% Clear
+clear all; close all; clc;
+
+%% Plot Basic Metrics
+d = readtable('stats.csv');
+
+seeds = unique(d.seed);
+rhos = unique(d.rho);
+policies = unique(d.policy_name);
+preemptives = unique(d.preemptive);
+metric_names = {'interarr','wait','delay','service','innode','inq','util','maxqlen'};
+
+valid_combo = {
+    'FCFS',0,'Non-preemptive FCFS'; 'FCFS',1,'Preemptive FCFS';
+    'LCFS',0,'Non-preemptive LCFS'; 'LCFS',1,'Preemptive LCFS';
+    'SJF' ,0,'Non-preemptive SJF';  'SJF' ,1,'Preemptive SJF'; 
+    'SRTF',1,'Preemptive SRTF'
+    'PS'  ,0,'Non-preemptive PS';   'PS'  ,1,'Preemptive PS';
+    };
+
+%'PS',0,'PS'; 'LCFS',0,'LCFS'; 
+
+%%
+
+set(groot,'defaulttextinterpreter','latex');  
+set(groot, 'defaultAxesTickLabelInterpreter','latex');  
+set(groot, 'defaultLegendInterpreter','latex');
+
+for i = 1:length(valid_combo)
+    p = string(valid_combo(i,1));
+    e = cell2mat(valid_combo(i,2));
+    l = string(valid_combo(i,3));
+    metrics = zeros( length(rhos), length(metric_names) );
+        
+    index = 1;
+    for k = 1:length(rhos)
+        r = rhos(k);           
+        m = d( strcmp(d.policy_name, p) & d.preemptive==e & d.rho==r, metric_names);
+        m =  mean(m{:,:},1);
+        metrics(index,:) = m;
+        index = index + 1;
+    end
+    
+    % Print result as table for one particular rho
+    rid = 5; % rho = 1.7
+    r = metrics(rid,:);
+%     fprintf('%20s  %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %.4f',...
+%         l, r(2), r(3), r(5), r(6), r(8));
+    fprintf('%s & $%.4f$ & $%.4f$ & $%d$ \\\\\n',...
+        l, r(3), r(6), r(8));
+    fprintf('\\hline \n');
+    
+    
+%     figure(1)
+%     set(gcf, 'units','normalized','outerposition',[0 0 1 1])
+%     plot(rhos, metrics(:, 3), '--', 'LineWidth', 2, 'DisplayName', l)
+%     set(gca, 'FontSize', 24)
+%     title("Average Delay vs Utilization")
+%     xlabel("Utilization $\rho = \frac{\mu}{\lambda}$")
+%     ylabel("Average Delay, $\overline{d}$ (s)")
+%     hold all
+%     grid on
+%     legend('-DynamicLegend', 'Location', 'northwest', 'NumColumns', 2);
+%     
+%     figure(2)
+%     set(gcf, 'units','normalized','outerposition',[0 0 1 1])
+%     plot(rhos, metrics(:, 4), '--', 'LineWidth', 2, 'DisplayName', l)
+%     set(gca, 'FontSize', 20)
+%     title("Average Service Time vs Utilization")
+%     xlabel("Utilization $\rho = \frac{\mu}{\lambda}$")
+%     ylabel("Average Service Time, $\overline{s}$ (s)")
+%     hold all
+%     grid on
+%     legend('-DynamicLegend', 'Location', 'northwest', 'NumColumns', 2);
+%     
+%     figure(3)
+%     set(gcf, 'units','normalized','outerposition',[0 0 1 1])
+%     plot(rhos, metrics(:, 2), '--', 'LineWidth', 2, 'DisplayName', l)
+%     set(gca, 'FontSize', 20)
+%     title("Average Wait Time vs Utilization")
+%     xlabel("Utilization $\rho = \frac{\mu}{\lambda}$")
+%     ylabel("Average Wait Time, $\overline{w}$ (s)")
+%     hold all
+%     grid on
+%     legend('-DynamicLegend', 'Location', 'northwest', 'NumColumns', 2);
+%         
+%     figure(4)
+%     set(gcf, 'units','normalized','outerposition',[0 0 1 1])
+%     plot(rhos, metrics(:, 6), '--', 'LineWidth', 2, 'DisplayName', l)
+%     set(gca, 'FontSize', 20)
+%     title("Average \# In Queue vs Utilization")
+%     xlabel("Utilization $\rho = \frac{\mu}{\lambda}$")
+%     ylabel("Average \# In Queue, $\overline{q}~(s^{-1})$")
+%     hold all
+%     grid on
+%     legend('-DynamicLegend', 'Location', 'northwest', 'NumColumns', 2);
+%     
+%     figure(5)
+%     set(gcf, 'units','normalized','outerposition',[0 0 1 1])
+%     plot(rhos, metrics(:, 7), '--', 'LineWidth', 2, 'DisplayName', l)
+%     set(gca, 'FontSize', 20)
+%     title("Average \# In Service vs Utilization")
+%     xlabel("Utilization $\rho = \frac{\mu}{\lambda}$")
+%     ylabel("Average \# In Service, $\overline{x}~(s^{-1})$")
+%     hold all
+%     grid on
+%     legend('-DynamicLegend', 'Location', 'northwest', 'NumColumns', 2);
+%     
+%     figure(6)
+%     set(gcf, 'units','normalized','outerposition',[0 0 1 1])
+%     plot(rhos, metrics(:, 5), '--', 'LineWidth', 2, 'DisplayName', l)
+%     set(gca, 'FontSize', 20)
+%     title("Average \# In Node vs Utilization")
+%     xlabel("Utilization $\rho = \frac{\mu}{\lambda}$")
+%     ylabel("Average \# In Node, $\overline{l}~(s^{-1})$")
+%     hold all
+%     grid on
+%     legend('-DynamicLegend', 'Location', 'northwest', 'NumColumns', 2);
+%     
+%     figure(7)
+%     set(gcf, 'units','normalized','outerposition',[0 0 1 1])
+%     plot(rhos, metrics(:, 6), '--', 'LineWidth', 2, 'DisplayName', l)
+%     set(gca, 'FontSize', 20)
+%     title("Maximum Queue Length vs Utilization")
+%     xlabel("Utilization $\rho = \frac{\mu}{\lambda}$")
+%     ylabel("Maximum Queue Length (nos.)")
+%     hold all
+%     grid on
+%     legend('-DynamicLegend', 'Location', 'northwest', 'NumColumns', 2);
+end
+
+%metrics = d(:,{'interarr','wait','delay','service','in_node','in_q','util'});
+
+
+
+
+
+%% Input - Arrival Timestamps and Service Durations
+% 
+% d = readtable('arrival_service.csv');
+% arrival = d.arrival;
+% interarrival = diff( [0; arrival] );   
+% service = d.service;
+% 
+% 
+% pdf_len = 100;
+% pdf = zeros(1,pdf_len);
+% interval = 100000;
+% finish = interval;
+% count = 0;
+% i = 1;
+% while i <= length(arrival)
+%     if arrival(i) < finish
+%         count = count + 1;
+%         i = i+1;
+%     else
+%         if count <= pdf_len-1
+%             pdf(count+1) = pdf(count+1) + 1;
+%         end
+%         finish = finish + interval;
+%         count = 0;
+%     end
+% end
+% pdf = pdf/sum(pdf);
+% cdf = cumsum(pdf);
+
+% %%
+% figure('units','normalized','outerposition',[0 0 1 1])
+% bar(pdf)
+% set(gca, 'FontSize', 24)
+% grid minor
+% title('Probability Density Function of Arrival Times', 'FontSize', 24)
+% xlabel('k', 'FontSize', 24)
+% ylabel('P(X=k) in 100s', 'FontSize', 24)
+% xlim([25,80])
+% %%
+% figure('units','normalized','outerposition',[0 0 1 1])
+% bar(cdf)
+% set(gca, 'FontSize', 24)
+% grid minor
+% title('Cumulative Density Function of Arrival Times', 'FontSize', 24)
+% xlabel('k', 'FontSize', 24)
+% ylabel('P(X \leq k) in 100s', 'FontSize', 24)
+% xlim([25,80])
+% %%
+% figure('units','normalized','outerposition',[0 0 1 1])
+% plot(arrival/1000, '.', 'LineWidth', 2)
+% set(gca, 'FontSize', 24)
+% grid minor
+% title('Arrival Time vs Job Index', 'FontSize', 24)
+% xlabel('Job index', 'FontSize', 24)
+% ylabel('Arrival time (s)', 'FontSize', 24)
+% %%
+% figure('units','normalized','outerposition',[0 0 1 1])
+% histogram(interarrival, 'BinLimits', [0, 1.5e4])
+% set(gca, 'FontSize', 24)
+% grid minor
+% title('Interarrival Time (ms) vs Number of Processes', 'FontSize', 24)
+% xlabel('Number of Processes', 'FontSize', 24)
+% ylabel('Interarrival time (ms)', 'FontSize', 24)
+% %%
+% figure('units','normalized','outerposition',[0 0 1 1])
+% histogram(service, 'BinLimits', [0, 1e4])
+% set(gca, 'FontSize', 24)
+% title('Service Time (ms) vs Number of Processes', 'FontSize', 24)
+% xlabel('Number of Processes', 'FontSize', 24)
+% ylabel('Service Time (ms)', 'FontSize', 24)
+
+
+
+
